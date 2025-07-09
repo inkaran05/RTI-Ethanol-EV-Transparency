@@ -1,39 +1,267 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth" >
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Analysis of India's Biofuel & EV Policies</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <!-- Chosen Palette: Civic Neutral -->
     <!-- Application Structure Plan: A thematic, single-page dashboard. The user lands on a summary and can navigate via a sticky header to three core sections: 'E20 Fuel: The Hidden Costs', 'EV Batteries: Waste or Asset?', and 'Regulation & Reality: The Transparency Gap'. This structure groups related RTI points logically for better user understanding, rather than following the report's linear format. It prioritizes user-centric topics (cost, environment) to facilitate exploration. Interactions like a cost calculator, dynamic charts, and expandable info cards are designed to make the data personally relevant and digestible. -->
-    <!-- Visualization & Content Choices: 
+    <!-- Visualization & Content Choices:
         1. E20 Mileage: Goal: Compare/Inform. Viz: Interactive Bar Chart (Chart.js) comparing 2W/4W mileage loss. Interaction: Hover for details, plus a custom JS-powered cost calculator. Justification: Makes abstract percentages tangible and personal.
         2. EV Battery Projections: Goal: Show Change/Scale. Viz: Line Chart (Chart.js) for GWh growth and a Donut Chart for retained capacity. Interaction: Hover for data points. Justification: Effectively visualizes the immense scale of the future challenge and the "asset vs. waste" concept.
         3. Compliance Framework: Goal: Organize/Inform. Viz: Not a chart, but an interactive HTML/Tailwind/JS accordion/checklist. Interaction: Click to expand details. Justification: More engaging and less intimidating than a dense table for presenting regulatory information.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
-        .nav-button { transition: all 0.3s ease; }
-        .nav-button.active { color: #1e40af; border-bottom-color: #1e40af; }
-        .nav-button:not(.active):hover { color: #3b82f6; border-bottom-color: #3b82f6; }
-        .content-section { display: none; }
-        .content-section.active { display: block; }
-        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
-        .stat-card { border-left: 4px solid #3b82f6; }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out; }
-        .chart-container { position: relative; width: 100%; max-width: 700px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
-        @media (max-width: 768px) { .chart-container { height: 300px; } }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f8f9fa;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      body.dark {
+        background-color: #1e293b;
+        color: #cbd5e1;
+      }
+      .nav-button {
+        transition: all 0.3s ease;
+      }
+      .nav-button.active {
+        color: #1e40af;
+        border-bottom-color: #1e40af;
+      }
+      .nav-button:not(.active):hover {
+        color: #3b82f6;
+        border-bottom-color: #3b82f6;
+      }
+      .content-section {
+        display: none;
+      }
+      .content-section.active {
+        display: block;
+      }
+      .card {
+        background-color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+          0 2px 4px -2px rgb(0 0 0 / 0.1);
+        transition: background-color 0.3s, color 0.3s;
+      }
+      body.dark .card {
+        background-color: #334155;
+        color: #cbd5e1;
+      }
+      .stat-card {
+        border-left: 4px solid #3b82f6;
+      }
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease-out;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 350px;
+        max-height: 400px;
+      }
+      @media (max-width: 768px) {
+        .chart-container {
+          height: 300px;
+        }
+      }
+      /* Dark mode toggle button */
+      #darkModeToggle {
+        cursor: pointer;
+        background-color: transparent;
+        border: none;
+        font-size: 1.25rem;
+        color: #1e40af;
+        transition: color 0.3s;
+      }
+      #darkModeToggle:hover {
+        color: #3b82f6;
+      }
+      /* Hamburger menu styles */
+      #hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: space-around;
+        width: 24px;
+        height: 24px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        z-index: 51;
+      }
+      #hamburger div {
+        width: 24px;
+        height: 3px;
+        background: #1e40af;
+        border-radius: 2px;
+        transition: all 0.3s linear;
+        position: relative;
+        transform-origin: 1px;
+      }
+      #hamburger.open div:nth-child(1) {
+        transform: rotate(45deg);
+      }
+      #hamburger.open div:nth-child(2) {
+        opacity: 0;
+      }
+      #hamburger.open div:nth-child(3) {
+        transform: rotate(-45deg);
+      }
+      /* Mobile nav menu */
+      #mobileMenu {
+        display: none;
+        flex-direction: column;
+        background-color: white;
+        position: absolute;
+        top: 64px;
+        right: 16px;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+          0 2px 4px -2px rgb(0 0 0 / 0.1);
+        z-index: 50;
+      }
+      #mobileMenu.open {
+        display: flex;
+      }
+      #mobileMenu button {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: none;
+        text-align: left;
+        font-weight: 600;
+        color: #1e40af;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      #mobileMenu button:hover,
+      #mobileMenu button.active {
+        background-color: #3b82f6;
+        color: white;
+      }
+      /* Export buttons */
+      .export-buttons {
+        margin-top: 0.5rem;
+        text-align: center;
+      }
+      .export-buttons button {
+        margin: 0 0.25rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1e40af;
+        border: 1px solid #1e40af;
+        border-radius: 0.375rem;
+        background: transparent;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      .export-buttons button:hover {
+        background-color: #1e40af;
+        color: white;
+      }
+      body.dark .export-buttons button {
+        color: #cbd5e1;
+        border-color: #cbd5e1;
+      }
+      body.dark .export-buttons button:hover {
+        background-color: #cbd5e1;
+        color: #1e40af;
+      }
     </style>
 </head>
 <body class="text-gray-800">
 
-    <header class="bg-white shadow-md sticky top-0 z-50">
+  <header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative flex items-center justify-between h-16">
+      <h1 class="text-xl md:text-2xl font-bold text-gray-700">Policy Analysis: Fuel & EVs</h1>
+      <nav class="hidden md:flex items-center space-x-4" role="navigation" aria-label="Primary">
+        <button
+          class="nav-button active text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1"
+          onclick="showSection('e20-fuel')"
+          aria-current="page"
+          aria-label="E20 Fuel Costs Section"
+        >
+          E20 Fuel Costs
+        </button>
+        <button
+          class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1"
+          onclick="showSection('ev-batteries')"
+          aria-label="EV Battery Lifecycle Section"
+        >
+          EV Battery Lifecycle
+        </button>
+        <button
+          class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1"
+          onclick="showSection('regulation')"
+          aria-label="Regulatory Gap Section"
+        >
+          Regulatory Gap
+        </button>
+        <button
+          class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1"
+          onclick="showSection('rti-info')"
+          aria-label="RTI Info Section"
+        >
+          RTI Info
+        </button>
+      </nav>
+      <button id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode" aria-pressed="false">🌙</button>
+      <button id="hamburger" aria-label="Toggle mobile menu" aria-expanded="false" aria-controls="mobileMenu">
+        <div></div>
+        <div></div>
+        <div></div>
+      </button>
+      <div id="mobileMenu" role="navigation" aria-label="Mobile Primary" tabindex="-1">
+        <button
+          class="nav-button active"
+          onclick="showSection('e20-fuel'); toggleMobileMenu()"
+          aria-current="page"
+          aria-label="E20 Fuel Costs Section"
+        >
+          E20 Fuel Costs
+        </button>
+        <button
+          class="nav-button"
+          onclick="showSection('ev-batteries'); toggleMobileMenu()"
+          aria-label="EV Battery Lifecycle Section"
+        >
+          EV Battery Lifecycle
+        </button>
+        <button
+          class="nav-button"
+          onclick="showSection('regulation'); toggleMobileMenu()"
+          aria-label="Regulatory Gap Section"
+        >
+          Regulatory Gap
+        </button>
+        <button
+          class="nav-button"
+          onclick="showSection('rti-info'); toggleMobileMenu()"
+          aria-label="RTI Info Section"
+        >
+          RTI Info
+        </button>
+      </div>
+    </div>
+  </header>
+=======
+      <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <h1 class="text-xl md:text-2xl font-bold text-gray-700">Policy Analysis: Fuel & EVs</h1>
@@ -262,210 +490,340 @@
         </section>
     </main>
 
-<script>
-    let mileageImpactChartInstance, batteryProjectionsChartInstance, batteryCapacityChartInstance;
+    <script>
+      let mileageImpactChartInstance, batteryProjectionsChartInstance, batteryCapacityChartInstance;
 
-    const navButtons = document.querySelectorAll('.nav-button');
-    const sections = document.querySelectorAll('.content-section');
-    const mobileNav = document.getElementById('mobile-nav');
+      const navButtons = document.querySelectorAll(".nav-button");
+      const sections = document.querySelectorAll(".content-section");
+      const darkModeToggle = document.getElementById("darkModeToggle");
+      const hamburger = document.getElementById("hamburger");
+      const mobileMenu = document.getElementById("mobileMenu");
 
-    function showSection(sectionId) {
-        sections.forEach(section => {
-            section.classList.remove('active');
-            if (section.id === sectionId) {
-                section.classList.add('active');
-            }
+      function showSection(sectionId) {
+        sections.forEach((section) => {
+          section.classList.remove("active");
+          if (section.id === sectionId) {
+            section.classList.add("active");
+          }
         });
-        navButtons.forEach(button => {
-            button.classList.remove('active');
-            if (button.getAttribute('onclick').includes(sectionId)) {
-                button.classList.add('active');
-            }
+        navButtons.forEach((button) => {
+          button.classList.remove("active");
+          if (button.getAttribute("onclick").includes(sectionId)) {
+            button.classList.add("active");
+          }
         });
-        mobileNav.value = sectionId;
-    }
-
-    navButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const sectionId = button.getAttribute('onclick').replace("showSection('", "").replace("')", "");
-            showSection(sectionId);
+        // Update aria-current for accessibility
+        navButtons.forEach((button) => {
+          if (button.classList.contains("active")) {
+            button.setAttribute("aria-current", "page");
+          } else {
+            button.removeAttribute("aria-current");
+          }
         });
-    });
+        // Close mobile menu if open
+        if (mobileMenu.classList.contains("open")) {
+          toggleMobileMenu();
+        }
+      }
 
-    mobileNav.addEventListener('change', (e) => {
-        showSection(e.target.value);
-    });
+      navButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const sectionId = button
+            .getAttribute("onclick")
+            .replace("showSection('", "")
+            .replace("')", "");
+          showSection(sectionId);
+        });
+      });
 
-    function createMileageImpactChart() {
-        const ctx = document.getElementById('mileageImpactChart').getContext('2d');
+      // Mobile menu toggle
+      hamburger.addEventListener("click", () => {
+        toggleMobileMenu();
+      });
+
+      function toggleMobileMenu() {
+        hamburger.classList.toggle("open");
+        mobileMenu.classList.toggle("open");
+        const expanded = hamburger.getAttribute("aria-expanded") === "true";
+        hamburger.setAttribute("aria-expanded", !expanded);
+        if (mobileMenu.classList.contains("open")) {
+          mobileMenu.focus();
+        }
+      }
+
+      // Dark mode toggle
+      darkModeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        const isDark = document.body.classList.contains("dark");
+        darkModeToggle.setAttribute("aria-pressed", isDark);
+        darkModeToggle.textContent = isDark ? "☀️" : "🌙";
+      });
+
+      function createMileageImpactChart() {
+        const ctx = document
+          .getElementById("mileageImpactChart")
+          .getContext("2d");
         if (mileageImpactChartInstance) {
-            mileageImpactChartInstance.destroy();
+          mileageImpactChartInstance.destroy();
         }
         mileageImpactChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['2-Wheelers (E0 Design)', '4-Wheelers (E0 Design)'],
-                datasets: [{
-                    label: 'Min Mileage Drop (%)',
-                    data: [3, 6],
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    borderWidth: 1
-                }, {
-                    label: 'Max Mileage Drop (%)',
-                    data: [4, 7],
-                    backgroundColor: 'rgba(29, 78, 216, 0.5)',
-                    borderColor: 'rgba(29, 78, 216, 1)',
-                    borderWidth: 1
-                }]
+          type: "bar",
+          data: {
+            labels: ["2-Wheelers (E0 Design)", "4-Wheelers (E0 Design)"],
+            datasets: [
+              {
+                label: "Min Mileage Drop (%)",
+                data: [3, 6],
+                backgroundColor: "rgba(59, 130, 246, 0.5)",
+                borderColor: "rgba(59, 130, 246, 1)",
+                borderWidth: 1,
+              },
+              {
+                label: "Max Mileage Drop (%)",
+                data: [4, 7],
+                backgroundColor: "rgba(29, 78, 216, 0.5)",
+                borderColor: "rgba(29, 78, 216, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, title: { display: true, text: "Mileage Drop (%)" } },
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, title: { display: true, text: 'Mileage Drop (%)' } }
+            plugins: {
+              title: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    let label = context.dataset.label || "";
+                    if (label) {
+                      label += ": ";
+                    }
+                    label += context.parsed.y + "%";
+                    return label;
+                  },
                 },
-                plugins: {
-                    title: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += context.parsed.y + '%';
-                                return label;
-                            }
-                        }
-                    },
-                    legend: { position: 'top' }
-                }
-            }
+              },
+              legend: { position: "top" },
+            },
+          },
         });
-    }
+      }
 
-    function createBatteryProjectionsChart() {
-        const ctx = document.getElementById('batteryProjectionsChart').getContext('2d');
+      function createBatteryProjectionsChart() {
+        const ctx = document
+          .getElementById("batteryProjectionsChart")
+          .getContext("2d");
         if (batteryProjectionsChartInstance) {
-            batteryProjectionsChartInstance.destroy();
+          batteryProjectionsChartInstance.destroy();
         }
         batteryProjectionsChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030'],
-                datasets: [{
-                    label: 'Cumulative Retiring EV Battery Volume (GWh)',
-                    data: [10, 15, 20, 28, 40, 60, 90, 128],
-                    fill: true,
-                    borderColor: 'rgb(34, 139, 34)',
-                    backgroundColor: 'rgba(34, 139, 34, 0.2)',
-                    tension: 0.4
-                }]
+          type: "line",
+          data: {
+            labels: ["2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030"],
+            datasets: [
+              {
+                label: "Cumulative Retiring EV Battery Volume (GWh)",
+                data: [10, 15, 20, 28, 40, 60, 90, 128],
+                fill: true,
+                borderColor: "rgb(34, 139, 34)",
+                backgroundColor: "rgba(34, 139, 34, 0.2)",
+                tension: 0.4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, title: { display: true, text: "GWh" } } },
+            plugins: {
+              title: { display: false },
+              tooltip: { mode: "index", intersect: false },
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, title: { display: true, text: 'GWh' } } },
-                plugins: {
-                    title: { display: false },
-                    tooltip: { mode: 'index', intersect: false }
-                }
-            }
+          },
         });
-    }
+      }
 
-    function createBatteryCapacityChart() {
-        const ctx = document.getElementById('batteryCapacityChart').getContext('2d');
+      function createBatteryCapacityChart() {
+        const ctx = document
+          .getElementById("batteryCapacityChart")
+          .getContext("2d");
         if (batteryCapacityChartInstance) {
-            batteryCapacityChartInstance.destroy();
+          batteryCapacityChartInstance.destroy();
         }
         batteryCapacityChartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Retained Capacity (for 2nd Life)', 'Used Capacity'],
-                datasets: [{
-                    data: [75, 25],
-                    backgroundColor: ['rgb(54, 162, 235)', 'rgb(230, 230, 230)'],
-                    hoverOffset: 4
-                }]
+          type: "doughnut",
+          data: {
+            labels: ["Retained Capacity (for 2nd Life)", "Used Capacity"],
+            datasets: [
+              {
+                data: [75, 25],
+                backgroundColor: ["rgb(54, 162, 235)", "rgb(230, 230, 230)"],
+                hoverOffset: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: "bottom" },
+              title: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return context.label + ": " + context.parsed + "% (Average)";
+                  },
+                },
+              },
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.label + ': ' + context.parsed + '% (Average)';
-                            }
-                        }
-                    }
-                }
-            }
+          },
         });
-    }
+      }
 
-    const mileageInput = document.getElementById('mileage');
-    const kmsInput = document.getElementById('kms');
-    const priceInput = document.getElementById('fuelPrice');
-    const costResult = document.getElementById('costResult');
+      const mileageInput = document.getElementById("mileage");
+      const kmsInput = document.getElementById("kms");
+      const priceInput = document.getElementById("fuelPrice");
+      const costResult = document.getElementById("costResult");
 
-    function calculateCost() {
+      function calculateCost() {
         const mileage = parseFloat(mileageInput.value) || 0;
         const kms = parseFloat(kmsInput.value) || 0;
         const price = parseFloat(priceInput.value) || 0;
 
         if (mileage > 0 && kms > 0 && price > 0) {
-            const mileageLossPercent = 0.05; 
-            const e10LitresPerMonth = kms / mileage;
-            const e20Mileage = mileage * (1 - mileageLossPercent);
-            const e20LitresPerMonth = kms / e20Mileage;
-            
-            const extraLitresPerMonth = e20LitresPerMonth - e10LitresPerMonth;
-            const extraCostPerMonth = extraLitresPerMonth * price;
-            const extraCostPerYear = extraCostPerMonth * 12;
+          const mileageLossPercent = 0.05;
+          const e10LitresPerMonth = kms / mileage;
+          const e20Mileage = mileage * (1 - mileageLossPercent);
+          const e20LitresPerMonth = kms / e20Mileage;
 
-            costResult.textContent = '₹' + Math.round(extraCostPerYear).toLocaleString('en-IN');
+          const extraLitresPerMonth = e20LitresPerMonth - e10LitresPerMonth;
+          const extraCostPerMonth = extraLitresPerMonth * price;
+          const extraCostPerYear = extraCostPerMonth * 12;
+
+          costResult.textContent = "₹" + Math.round(extraCostPerYear).toLocaleString("en-IN");
         } else {
-            costResult.textContent = '₹0';
+          costResult.textContent = "₹0";
         }
-    }
-    
-    [mileageInput, kmsInput, priceInput].forEach(input => {
-        input.addEventListener('input', calculateCost);
-    });
-    
-    document.querySelectorAll('.accordion-header').forEach(button => {
-        button.addEventListener('click', () => {
-            const content = button.nextElementSibling;
-            const icon = button.querySelector('span');
+      }
 
-            button.parentElement.parentElement.querySelectorAll('.accordion-content').forEach(item => {
-                if (item !== content) {
-                    item.style.maxHeight = null;
-                    item.previousElementSibling.querySelector('span').classList.remove('rotate-180');
-                }
-            });
+      [mileageInput, kmsInput, priceInput].forEach((input) => {
+        input.addEventListener("input", calculateCost);
+      });
 
-            if (content.style.maxHeight) {
-                content.style.maxHeight = null;
-                icon.classList.remove('rotate-180');
-            } else {
-                content.style.maxHeight = content.scrollHeight + "px";
-                icon.classList.add('rotate-180');
-            } 
+      document.querySelectorAll(".accordion-header").forEach((button) => {
+        button.addEventListener("click", () => {
+          const content = button.nextElementSibling;
+          const icon = button.querySelector("span");
+
+          button.parentElement.parentElement.querySelectorAll(".accordion-content").forEach((item) => {
+            if (item !== content) {
+              item.style.maxHeight = null;
+              item.previousElementSibling.querySelector("span").classList.remove("rotate-180");
+            }
+          });
+
+          if (content.style.maxHeight) {
+            content.style.maxHeight = null;
+            icon.classList.remove("rotate-180");
+          } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+            icon.classList.add("rotate-180");
+          }
         });
-    });
+      });
 
-    window.onload = function() {
-        showSection('e20-fuel');
+      // Export chart data as CSV
+      function exportChartData(chartId, filename) {
+        const chart = Chart.getChart(chartId);
+        if (!chart) return;
+
+        const labels = chart.data.labels;
+        const datasets = chart.data.datasets;
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Label," + datasets.map(ds => ds.label).join(",") + "\n";
+
+        labels.forEach((label, index) => {
+          const row = [label];
+          datasets.forEach(ds => {
+            row.push(ds.data[index]);
+          });
+          csvContent += row.join(",") + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      // Export chart as PDF
+      function exportChartPDF(chartId, filename) {
+        const chart = Chart.getChart(chartId);
+        if (!chart) return;
+
+        const canvas = chart.canvas;
+        const imgData = canvas.toDataURL("image/png");
+
+        const pdf = new jsPDF({
+          orientation: "landscape",
+          unit: "pt",
+          format: [canvas.width, canvas.height],
+        });
+
+        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+        pdf.save(filename);
+      }
+
+      // Export cost calculator data as CSV
+      function exportCostDataCSV() {
+        const mileage = mileageInput.value || "";
+        const kms = kmsInput.value || "";
+        const price = priceInput.value || "";
+        const cost = costResult.textContent || "";
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Mileage,Kilometers Driven,Petrol Price,Estimated Extra Cost\n";
+        csvContent += `${mileage},${kms},${price},${cost}\n`;
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "fuel_cost_data.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      // Export cost calculator data as PDF
+      function exportCostDataPDF() {
+        const mileage = mileageInput.value || "";
+        const kms = kmsInput.value || "";
+        const price = priceInput.value || "";
+        const cost = costResult.textContent || "";
+
+        const pdf = new jsPDF();
+        pdf.text("Fuel Cost Calculator Data", 10, 10);
+        pdf.text(`Mileage: ${mileage}`, 10, 30);
+        pdf.text(`Kilometers Driven: ${kms}`, 10, 50);
+        pdf.text(`Petrol Price: ${price}`, 10, 70);
+        pdf.text(`Estimated Extra Cost: ${cost}`, 10, 90);
+        pdf.save("fuel_cost_data.pdf");
+      }
+
+      window.onload = function () {
+        showSection("e20-fuel");
         createMileageImpactChart();
         createBatteryProjectionsChart();
         createBatteryCapacityChart();
-    };
-</script>
+      };
+    </script>
 </body>
 </html>
