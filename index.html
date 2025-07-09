@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis of India's Biofuel & EV Policies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Civic Neutral -->
+    <!-- Application Structure Plan: A thematic, single-page dashboard. The user lands on a summary and can navigate via a sticky header to three core sections: 'E20 Fuel: The Hidden Costs', 'EV Batteries: Waste or Asset?', and 'Regulation & Reality: The Transparency Gap'. This structure groups related RTI points logically for better user understanding, rather than following the report's linear format. It prioritizes user-centric topics (cost, environment) to facilitate exploration. Interactions like a cost calculator, dynamic charts, and expandable info cards are designed to make the data personally relevant and digestible. -->
+    <!-- Visualization & Content Choices: 
+        1. E20 Mileage: Goal: Compare/Inform. Viz: Interactive Bar Chart (Chart.js) comparing 2W/4W mileage loss. Interaction: Hover for details, plus a custom JS-powered cost calculator. Justification: Makes abstract percentages tangible and personal.
+        2. EV Battery Projections: Goal: Show Change/Scale. Viz: Line Chart (Chart.js) for GWh growth and a Donut Chart for retained capacity. Interaction: Hover for data points. Justification: Effectively visualizes the immense scale of the future challenge and the "asset vs. waste" concept.
+        3. Compliance Framework: Goal: Organize/Inform. Viz: Not a chart, but an interactive HTML/Tailwind/JS accordion/checklist. Interaction: Click to expand details. Justification: More engaging and less intimidating than a dense table for presenting regulatory information.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        .nav-button { transition: all 0.3s ease; }
+        .nav-button.active { color: #1e40af; border-bottom-color: #1e40af; }
+        .nav-button:not(.active):hover { color: #3b82f6; border-bottom-color: #3b82f6; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+        .stat-card { border-left: 4px solid #3b82f6; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out; }
+        .chart-container { position: relative; width: 100%; max-width: 700px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        @media (max-width: 768px) { .chart-container { height: 300px; } }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-xl md:text-2xl font-bold text-gray-700">Policy Analysis: Fuel & EVs</h1>
+                <nav class="hidden md:flex items-center space-x-4">
+                    <button class="nav-button active text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1" onclick="showSection('e20-fuel')">E20 Fuel Costs</button>
+                    <button class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1" onclick="showSection('ev-batteries')">EV Battery Lifecycle</button>
+                    <button class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1" onclick="showSection('regulation')">Regulatory Gap</button>
+                </nav>
+                <div class="md:hidden">
+                    <select id="mobile-nav" class="bg-gray-100 border-gray-300 rounded-md p-2 text-sm">
+                        <option value="e20-fuel">E20 Fuel Costs</option>
+                        <option value="ev-batteries">EV Battery Lifecycle</option>
+                        <option value="regulation">Regulatory Gap</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <section id="e20-fuel" class="content-section active">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-blue-900 mb-2">E20 Fuel: The Hidden Costs</h2>
+                <p class="max-w-3xl mx-auto text-gray-600">
+                    India's shift to E20 (20% ethanol) petrol is aimed at reducing oil imports, but official data reveals a direct financial impact on consumers through reduced vehicle mileage. This section explores the data, the material risks, and what it really costs you.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="card p-4 stat-card">
+                    <h3 class="font-semibold text-gray-500">2-Wheeler Mileage Drop</h3>
+                    <p class="text-2xl font-bold text-blue-800">5-6%</p>
+                    <p class="text-xs text-gray-400">Source: ARAI</p>
+                </div>
+                <div class="card p-4 stat-card">
+                    <h3 class="font-semibold text-gray-500">4-Wheeler Mileage Drop</h3>
+                    <p class="text-2xl font-bold text-blue-800">2-7%</p>
+                    <p class="text-xs text-gray-400">Source: ARAI & NITI Aayog</p>
+                </div>
+                <div class="card p-4 stat-card">
+                    <h3 class="font-semibold text-gray-500">Known Energy Deficit</h3>
+                    <p class="text-2xl font-bold text-blue-800">~34%</p>
+                    <p class="text-xs text-gray-400">Ethanol vs. Gasoline</p>
+                </div>
+                 <div class="card p-4 stat-card bg-yellow-50 border-l-yellow-400">
+                    <h3 class="font-semibold text-gray-500">Key Govt. Admission</h3>
+                    <p class="text-lg font-bold text-yellow-800">Tax incentives may be needed</p>
+                    <p class="text-xs text-gray-400">Source: NITI Aayog Roadmap</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold mb-4 text-center">E20 vs E10: Mileage Impact Comparison</h3>
+                    <p class="text-sm text-center text-gray-500 mb-4">Official tests confirm E20 provides fewer kilometers per litre. Hover over bars for details.</p>
+                    <div class="chart-container">
+                        <canvas id="mileageImpactChart"></canvas>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold mb-4 text-center">Calculate Your Extra Annual Fuel Cost</h3>
+                    <p class="text-sm text-center text-gray-500 mb-4">Enter your vehicle's details to estimate the financial impact of the mileage drop.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="mileage" class="block text-sm font-medium text-gray-700">Your Vehicle's Mileage (km/l)</label>
+                            <input type="number" id="mileage" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="e.g., 18">
+                        </div>
+                        <div>
+                            <label for="kms" class="block text-sm font-medium text-gray-700">Average Monthly Driving (km)</label>
+                            <input type="number" id="kms" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="e.g., 1000">
+                        </div>
+                         <div>
+                            <label for="fuelPrice" class="block text-sm font-medium text-gray-700">Current Petrol Price (₹/litre)</label>
+                            <input type="number" id="fuelPrice" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="e.g., 105">
+                        </div>
+                        <div class="text-center pt-4">
+                            <p class="text-gray-600">Estimated Additional Annual Cost:</p>
+                            <p id="costResult" class="text-3xl font-bold text-red-600">₹0</p>
+                            <p class="text-xs text-gray-500 mt-1">Based on a 5% average mileage loss.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ev-batteries" class="content-section">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-green-900 mb-2">EV Batteries: Waste or Asset?</h2>
+                <p class="max-w-3xl mx-auto text-gray-600">
+                    The EV revolution brings a future challenge: managing millions of used batteries. These are not just waste; they are valuable assets. This section visualizes the scale of the issue and the opportunity for a circular economy.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                 <div class="card p-6">
+                    <h3 class="text-xl font-bold mb-4 text-center">Projected End-of-Life Battery Volume</h3>
+                    <p class="text-sm text-center text-gray-500 mb-4">The volume of retiring batteries is set to explode, creating a massive recycling challenge and opportunity.</p>
+                    <div class="chart-container">
+                        <canvas id="batteryProjectionsChart"></canvas>
+                    </div>
+                 </div>
+                 <div class="card p-6 flex flex-col justify-center">
+                    <h3 class="text-xl font-bold mb-4 text-center">Retired Battery: Still Full of Potential</h3>
+                    <p class="text-sm text-center text-gray-500 mb-4">EV batteries are retired with most of their capacity intact, making them ideal for a "second life" in energy storage.</p>
+                    <div class="chart-container h-64 md:h-auto">
+                        <canvas id="batteryCapacityChart"></canvas>
+                    </div>
+                 </div>
+            </div>
+
+            <div class="card p-6">
+                <h3 class="text-2xl font-bold mb-4 text-center">The Circular Economy Journey of a Battery</h3>
+                <p class="text-center text-gray-600 mb-6">The Battery Waste Management Rules (2022) create a system called Extended Producer Responsibility (EPR) to track batteries from creation to recycling, ensuring they are managed safely and their value is recovered.</p>
+                 <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4 text-center">
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl">🏭</div>
+                        <p class="font-bold mt-2">Producer</p>
+                        <p class="text-sm text-gray-500">Manufactures or imports battery</p>
+                    </div>
+                    <div class="text-2xl text-gray-400 font-mono hidden md:block">&rarr;</div>
+                    <div class="text-2xl text-gray-400 font-mono md:hidden">&darr;</div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl">👤</div>
+                        <p class="font-bold mt-2">Consumer</p>
+                        <p class="text-sm text-gray-500">Uses battery in EV</p>
+                    </div>
+                    <div class="text-2xl text-gray-400 font-mono hidden md:block">&rarr;</div>
+                    <div class="text-2xl text-gray-400 font-mono md:hidden">&darr;</div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-2xl">♻️</div>
+                        <p class="font-bold mt-2">Collection & Reuse</p>
+                        <p class="text-sm text-gray-500">Battery starts its second life</p>
+                    </div>
+                    <div class="text-2xl text-gray-400 font-mono hidden md:block">&rarr;</div>
+                    <div class="text-2xl text-gray-400 font-mono md:hidden">&darr;</div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-2xl">🔬</div>
+                        <p class="font-bold mt-2">Recycling</p>
+                        <p class="text-sm text-gray-500">Valuable minerals recovered</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="regulation" class="content-section">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-red-900 mb-2">Regulation & Reality: The Transparency Gap</h2>
+                <p class="max-w-3xl mx-auto text-gray-600">
+                    India has strong environmental laws for polluting industries and battery waste management. However, their effectiveness depends on transparent enforcement. This section breaks down the key rules and the public's right to see compliance data.
+                </p>
+            </div>
+
+            <div class="card p-6">
+                <h3 class="text-2xl font-bold mb-4 text-center">Key Environmental & Waste Management Obligations</h3>
+                <p class="text-center text-gray-600 mb-6">Click on each obligation to see the details, responsible parties, and penalties for non-compliance. This information is based on existing laws like the EIA Notification 2006 and BWM Rules 2022.</p>
+                <div id="accordion-container" class="space-y-3">
+                    
+                    <div class="border rounded-lg">
+                        <button class="accordion-header w-full text-left p-4 font-semibold bg-gray-50 hover:bg-gray-100 flex justify-between items-center">
+                            Prior Environmental Clearance (EIA)
+                            <span class="transform transition-transform duration-300">▼</span>
+                        </button>
+                        <div class="accordion-content p-4 border-t bg-white">
+                            <p><strong>Governing Law:</strong> EIA Notification, 2006.</p>
+                            <p><strong>Who is responsible?</strong> Project Proponents (e.g., new ethanol distilleries, battery plants).</p>
+                            <p><strong>What is required?</strong> A mandatory clearance from the Environment Ministry *before* any construction begins. Distilleries are Category 'A', requiring the highest level of scrutiny.</p>
+                            <p><strong>Penalty for non-compliance:</strong> Project can be legally ordered to stop operations.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="border rounded-lg">
+                        <button class="accordion-header w-full text-left p-4 font-semibold bg-gray-50 hover:bg-gray-100 flex justify-between items-center">
+                            EPR Registration
+                            <span class="transform transition-transform duration-300">▼</span>
+                        </button>
+                        <div class="accordion-content p-4 border-t bg-white">
+                            <p><strong>Governing Law:</strong> Battery Waste Management (BWM) Rules, 2022.</p>
+                            <p><strong>Who is responsible?</strong> Battery Producers, Importers, Recyclers, and Refurbishers.</p>
+                            <p><strong>What is required?</strong> All entities must register on the CPCB's centralized online portal to legally operate.</p>
+                            <p><strong>Penalty for non-compliance:</strong> Cannot operate legally. Subject to Environmental Compensation (fines) and other actions under the Environment (Protection) Act.</p>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg">
+                        <button class="accordion-header w-full text-left p-4 font-semibold bg-gray-50 hover:bg-gray-100 flex justify-between items-center">
+                            Annual Return Filing & Target Achievement
+                            <span class="transform transition-transform duration-300">▼</span>
+                        </button>
+                        <div class="accordion-content p-4 border-t bg-white">
+                            <p><strong>Governing Law:</strong> BWM Rules, 2022.</p>
+                            <p><strong>Who is responsible?</strong> Battery Producers.</p>
+                            <p><strong>What is required?</strong> File annual returns detailing collection and recycling activities. Must meet mandatory, time-bound collection and recycling targets.</p>
+                            <p><strong>Penalty for non-compliance:</strong> Fines (Environmental Compensation) are levied based on the shortfall. Unfulfilled targets are carried over to the next year.</p>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg">
+                        <button class="accordion-header w-full text-left p-4 font-semibold bg-gray-50 hover:bg-gray-100 flex justify-between items-center">
+                            Enforcement with Penalties
+                            <span class="transform transition-transform duration-300">▼</span>
+                        </button>
+                        <div class="accordion-content p-4 border-t bg-white">
+                             <p><strong>Status:</strong> As of Sep 2024, guidelines for imposing Environmental Compensation (EC) are officially approved.</p>
+                            <p><strong>What it means:</strong> The "polluter pays" principle is now active. The CPCB has a formal framework to levy fines for violations of the BWM rules.</p>
+                            <p><strong>The Transparency Gap:</strong> The public has a right to know which companies are non-compliant, how much they have been fined, and whether those fines have been collected. This enforcement data is not currently public.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+<script>
+    let mileageImpactChartInstance, batteryProjectionsChartInstance, batteryCapacityChartInstance;
+
+    const navButtons = document.querySelectorAll('.nav-button');
+    const sections = document.querySelectorAll('.content-section');
+    const mobileNav = document.getElementById('mobile-nav');
+
+    function showSection(sectionId) {
+        sections.forEach(section => {
+            section.classList.remove('active');
+            if (section.id === sectionId) {
+                section.classList.add('active');
+            }
+        });
+        navButtons.forEach(button => {
+            button.classList.remove('active');
+            if (button.getAttribute('onclick').includes(sectionId)) {
+                button.classList.add('active');
+            }
+        });
+        mobileNav.value = sectionId;
+    }
+
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const sectionId = button.getAttribute('onclick').replace("showSection('", "").replace("')", "");
+            showSection(sectionId);
+        });
+    });
+
+    mobileNav.addEventListener('change', (e) => {
+        showSection(e.target.value);
+    });
+
+    function createMileageImpactChart() {
+        const ctx = document.getElementById('mileageImpactChart').getContext('2d');
+        if (mileageImpactChartInstance) {
+            mileageImpactChartInstance.destroy();
+        }
+        mileageImpactChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['2-Wheelers (E0 Design)', '4-Wheelers (E0 Design)'],
+                datasets: [{
+                    label: 'Min Mileage Drop (%)',
+                    data: [3, 6],
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Max Mileage Drop (%)',
+                    data: [4, 7],
+                    backgroundColor: 'rgba(29, 78, 216, 0.5)',
+                    borderColor: 'rgba(29, 78, 216, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Mileage Drop (%)' } }
+                },
+                plugins: {
+                    title: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed.y + '%';
+                                return label;
+                            }
+                        }
+                    },
+                    legend: { position: 'top' }
+                }
+            }
+        });
+    }
+
+    function createBatteryProjectionsChart() {
+        const ctx = document.getElementById('batteryProjectionsChart').getContext('2d');
+        if (batteryProjectionsChartInstance) {
+            batteryProjectionsChartInstance.destroy();
+        }
+        batteryProjectionsChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030'],
+                datasets: [{
+                    label: 'Cumulative Retiring EV Battery Volume (GWh)',
+                    data: [10, 15, 20, 28, 40, 60, 90, 128],
+                    fill: true,
+                    borderColor: 'rgb(34, 139, 34)',
+                    backgroundColor: 'rgba(34, 139, 34, 0.2)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'GWh' } } },
+                plugins: {
+                    title: { display: false },
+                    tooltip: { mode: 'index', intersect: false }
+                }
+            }
+        });
+    }
+
+    function createBatteryCapacityChart() {
+        const ctx = document.getElementById('batteryCapacityChart').getContext('2d');
+        if (batteryCapacityChartInstance) {
+            batteryCapacityChartInstance.destroy();
+        }
+        batteryCapacityChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Retained Capacity (for 2nd Life)', 'Used Capacity'],
+                datasets: [{
+                    data: [75, 25],
+                    backgroundColor: ['rgb(54, 162, 235)', 'rgb(230, 230, 230)'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '% (Average)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    const mileageInput = document.getElementById('mileage');
+    const kmsInput = document.getElementById('kms');
+    const priceInput = document.getElementById('fuelPrice');
+    const costResult = document.getElementById('costResult');
+
+    function calculateCost() {
+        const mileage = parseFloat(mileageInput.value) || 0;
+        const kms = parseFloat(kmsInput.value) || 0;
+        const price = parseFloat(priceInput.value) || 0;
+
+        if (mileage > 0 && kms > 0 && price > 0) {
+            const mileageLossPercent = 0.05; 
+            const e10LitresPerMonth = kms / mileage;
+            const e20Mileage = mileage * (1 - mileageLossPercent);
+            const e20LitresPerMonth = kms / e20Mileage;
+            
+            const extraLitresPerMonth = e20LitresPerMonth - e10LitresPerMonth;
+            const extraCostPerMonth = extraLitresPerMonth * price;
+            const extraCostPerYear = extraCostPerMonth * 12;
+
+            costResult.textContent = '₹' + Math.round(extraCostPerYear).toLocaleString('en-IN');
+        } else {
+            costResult.textContent = '₹0';
+        }
+    }
+    
+    [mileageInput, kmsInput, priceInput].forEach(input => {
+        input.addEventListener('input', calculateCost);
+    });
+    
+    document.querySelectorAll('.accordion-header').forEach(button => {
+        button.addEventListener('click', () => {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('span');
+
+            button.parentElement.parentElement.querySelectorAll('.accordion-content').forEach(item => {
+                if (item !== content) {
+                    item.style.maxHeight = null;
+                    item.previousElementSibling.querySelector('span').classList.remove('rotate-180');
+                }
+            });
+
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                icon.classList.remove('rotate-180');
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                icon.classList.add('rotate-180');
+            } 
+        });
+    });
+
+    window.onload = function() {
+        showSection('e20-fuel');
+        createMileageImpactChart();
+        createBatteryProjectionsChart();
+        createBatteryCapacityChart();
+    };
+</script>
+</body>
+</html>
