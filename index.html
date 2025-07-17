@@ -12,14 +12,6 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Chosen Palette: Civic Neutral -->
-    <!-- Application Structure Plan: A thematic, single-page dashboard. The user lands on a summary and can navigate via a sticky header to three core sections: 'E20 Fuel: The Hidden Costs', 'EV Batteries: Waste or Asset?', and 'Regulation & Reality: The Transparency Gap'. This structure groups related RTI points logically for better user understanding, rather than following the report's linear format. It prioritizes user-centric topics (cost, environment) to facilitate exploration. Interactions like a cost calculator, dynamic charts, and expandable info cards are designed to make the data personally relevant and digestible. -->
-    <!-- Visualization & Content Choices:
-        1. E20 Mileage: Goal: Compare/Inform. Viz: Interactive Bar Chart (Chart.js) comparing 2W/4W mileage loss. Interaction: Hover for details, plus a custom JS-powered cost calculator. Justification: Makes abstract percentages tangible and personal.
-        2. EV Battery Projections: Goal: Show Change/Scale. Viz: Line Chart (Chart.js) for GWh growth and a Donut Chart for retained capacity. Interaction: Hover for data points. Justification: Effectively visualizes the immense scale of the future challenge and the "asset vs. waste" concept.
-        3. Compliance Framework: Goal: Organize/Inform. Viz: Not a chart, but an interactive HTML/Tailwind/JS accordion/checklist. Interaction: Click to expand details. Justification: More engaging and less intimidating than a dense table for presenting regulatory information.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
       body {
         font-family: "Inter", sans-serif;
@@ -29,17 +21,6 @@
       body.dark {
         background-color: #1e293b;
         color: #cbd5e1;
-      }
-      .nav-button {
-        transition: all 0.3s ease;
-      }
-      .nav-button.active {
-        color: #1e40af;
-        border-bottom-color: #1e40af;
-      }
-      .nav-button:not(.active):hover {
-        color: #3b82f6;
-        border-bottom-color: #3b82f6;
       }
       .content-section {
         display: none;
@@ -94,7 +75,7 @@
       }
       /* Hamburger menu styles */
       #hamburger {
-        display: none;
+        display: none; /* Hidden by default, shown only on mobile */
         flex-direction: column;
         justify-content: space-around;
         width: 24px;
@@ -154,6 +135,74 @@
         background-color: #3b82f6;
         color: white;
       }
+      /* Desktop dot navigation styles */
+      .dot-navigation {
+        position: fixed;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        z-index: 40;
+        display: none; /* Hidden by default, shown on larger screens */
+      }
+      @media (min-width: 768px) { /* Show on desktop */
+        .dot-navigation {
+          display: flex;
+        }
+        #hamburger, #mobileMenu {
+          display: none; /* Hide hamburger and mobile menu on desktop */
+        }
+      }
+      .dot {
+        width: 14px;
+        height: 14px;
+        background-color: #cbd5e1; /* Default dot color */
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+        border: 2px solid transparent;
+        position: relative;
+      }
+      .dot:hover {
+        background-color: #3b82f6;
+      }
+      .dot.active {
+        background-color: #1e40af; /* Active dot color */
+        transform: scale(1.2);
+        border-color: #1e40af;
+      }
+      .dot-label {
+        position: absolute;
+        right: 25px;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: #334155;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s, visibility 0.3s;
+      }
+      .dot:hover .dot-label {
+        opacity: 1;
+        visibility: visible;
+      }
+      body.dark .dot {
+        background-color: #475569;
+      }
+      body.dark .dot.active {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+      }
+      body.dark .dot-label {
+        background-color: #cbd5e1;
+        color: #1e293b;
+      }
+
       /* Export buttons */
       .export-buttons {
         margin-top: 0.5rem;
@@ -190,37 +239,7 @@
       <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative flex items-center justify-between h-16">
           <h1 class="text-xl md:text-2xl font-bold text-gray-700">Policy Analysis: Fuel & EVs</h1>
-          <nav class="hidden md:flex items-center space-x-4" role="navigation" aria-label="Primary">
-            <button
-              class="nav-button active text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1"
-              onclick="showSection('e20-fuel')"
-              aria-current="page"
-              aria-label="E20 Fuel Costs Section"
-            >
-              E20 Fuel Costs
-            </button>
-            <button
-              class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1"
-              onclick="showSection('ev-batteries')"
-              aria-label="EV Battery Lifecycle Section"
-            >
-              EV Battery Lifecycle
-            </button>
-            <button
-              class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1"
-              onclick="showSection('regulation')"
-              aria-label="Regulatory Gap Section"
-            >
-              Regulatory Gap
-            </button>
-            <button
-              class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1"
-              onclick="showSection('rti-info')"
-              aria-label="RTI Info Section"
-            >
-              RTI Info
-            </button>
-          </nav>
+
           <button id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode" aria-pressed="false">🌙</button>
           <button id="hamburger" aria-label="Toggle mobile menu" aria-expanded="false" aria-controls="mobileMenu">
             <div></div>
@@ -260,31 +279,25 @@
           </div>
         </div>
       </header>
-=======
-      <header class="bg-white shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <h1 class="text-xl md:text-2xl font-bold text-gray-700">Policy Analysis: Fuel & EVs</h1>
-                <nav class="hidden md:flex items-center space-x-4">
-                    <button class="nav-button active text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1" onclick="showSection('e20-fuel')">E20 Fuel Costs</button>
-                    <button class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1" onclick="showSection('ev-batteries')">EV Battery Lifecycle</button>
-                    <button class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1" onclick="showSection('regulation')">Regulatory Gap</button>
-                    <button class="nav-button text-sm lg:text-base font-medium border-b-2 border-transparent px-2 py-1" onclick="showSection('rti-info')">RTI Info</button>
-                </nav>
-                <div class="md:hidden">
-                    <select id="mobile-nav" class="bg-gray-100 border-gray-300 rounded-md p-2 text-sm">
-                        <option value="e20-fuel">E20 Fuel Costs</option>
-                        <option value="ev-batteries">EV Battery Lifecycle</option>
-                        <option value="regulation">Regulatory Gap</option>
-                        <option value="rti-info">RTI Info</option>
-                    </select>
-                </div>
-            </div>
+
+    <div class="dot-navigation" role="navigation" aria-label="Section Navigation">
+        <div class="dot active" data-section="e20-fuel" aria-label="Go to E20 Fuel Costs">
+            <span class="dot-label">E20 Fuel Costs</span>
         </div>
-    </header>
+        <div class="dot" data-section="ev-batteries" aria-label="Go to EV Battery Lifecycle">
+            <span class="dot-label">EV Battery Lifecycle</span>
+        </div>
+        <div class="dot" data-section="regulation" aria-label="Go to Regulatory Gap">
+            <span class="dot-label">Regulatory Gap</span>
+        </div>
+        <div class="dot" data-section="rti-info" aria-label="Go to RTI Info">
+            <span class="dot-label">RTI Info</span>
+        </div>
+    </div>
+
 
     <main class="container mx-auto p-4 sm:p-6 lg:p-8">
-        
+
         <section id="e20-fuel" class="content-section active">
             <div class="text-center mb-8">
                 <h2 class="text-3xl font-bold text-blue-900 mb-2">E20 Fuel: The Hidden Costs</h2>
@@ -357,7 +370,7 @@
                     The EV revolution brings a future challenge: managing millions of used batteries. These are not just waste; they are valuable assets. This section visualizes the scale of the issue and the opportunity for a circular economy.
                 </p>
             </div>
-            
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                  <div class="card p-6">
                     <h3 class="text-xl font-bold mb-4 text-center">Projected End-of-Life Battery Volume</h3>
@@ -422,7 +435,7 @@
                 <h3 class="text-2xl font-bold mb-4 text-center">Key Environmental & Waste Management Obligations</h3>
                 <p class="text-center text-gray-600 mb-6">Click on each obligation to see the details, responsible parties, and penalties for non-compliance. This information is based on existing laws like the EIA Notification 2006 and BWM Rules 2022.</p>
                 <div id="accordion-container" class="space-y-3">
-                    
+
                     <div class="border rounded-lg">
                         <button class="accordion-header w-full text-left p-4 font-semibold bg-gray-50 hover:bg-gray-100 flex justify-between items-center">
                             Prior Environmental Clearance (EIA)
@@ -435,7 +448,7 @@
                             <p><strong>Penalty for non-compliance:</strong> Project can be legally ordered to stop operations.</p>
                         </div>
                     </div>
-                    
+
                     <div class="border rounded-lg">
                         <button class="accordion-header w-full text-left p-4 font-semibold bg-gray-50 hover:bg-gray-100 flex justify-between items-center">
                             EPR Registration
@@ -493,11 +506,12 @@
     <script>
       let mileageImpactChartInstance, batteryProjectionsChartInstance, batteryCapacityChartInstance;
 
-      const navButtons = document.querySelectorAll(".nav-button");
       const sections = document.querySelectorAll(".content-section");
       const darkModeToggle = document.getElementById("darkModeToggle");
       const hamburger = document.getElementById("hamburger");
       const mobileMenu = document.getElementById("mobileMenu");
+      const dotNavigation = document.querySelector(".dot-navigation");
+      const navButtons = document.querySelectorAll("#mobileMenu .nav-button"); // Only mobile nav buttons
 
       function showSection(sectionId) {
         sections.forEach((section) => {
@@ -506,13 +520,14 @@
             section.classList.add("active");
           }
         });
+
+        // Update active state for mobile nav buttons
         navButtons.forEach((button) => {
           button.classList.remove("active");
           if (button.getAttribute("onclick").includes(sectionId)) {
             button.classList.add("active");
           }
         });
-        // Update aria-current for accessibility
         navButtons.forEach((button) => {
           if (button.classList.contains("active")) {
             button.setAttribute("aria-current", "page");
@@ -520,21 +535,19 @@
             button.removeAttribute("aria-current");
           }
         });
-        // Close mobile menu if open
+
+        // Update active state for dot navigation
+        document.querySelectorAll(".dot-navigation .dot").forEach((dot) => {
+          dot.classList.remove("active");
+          if (dot.dataset.section === sectionId) {
+            dot.classList.add("active");
+          }
+        });
+
         if (mobileMenu.classList.contains("open")) {
           toggleMobileMenu();
         }
       }
-
-      navButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const sectionId = button
-            .getAttribute("onclick")
-            .replace("showSection('", "")
-            .replace("')", "");
-          showSection(sectionId);
-        });
-      });
 
       // Mobile menu toggle
       hamburger.addEventListener("click", () => {
@@ -558,6 +571,15 @@
         darkModeToggle.setAttribute("aria-pressed", isDark);
         darkModeToggle.textContent = isDark ? "☀️" : "🌙";
       });
+
+      // Dot navigation click handler
+      dotNavigation.addEventListener("click", (event) => {
+        const dot = event.target.closest(".dot");
+        if (dot && dot.dataset.section) {
+          showSection(dot.dataset.section);
+        }
+      });
+
 
       function createMileageImpactChart() {
         const ctx = document
@@ -765,22 +787,23 @@
       }
 
       // Export chart as PDF
-      function exportChartPDF(chartId, filename) {
-        const chart = Chart.getChart(chartId);
-        if (!chart) return;
+      // For PDF export, jsPDF library is needed. Add <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> to head
+      // function exportChartPDF(chartId, filename) {
+      //   const chart = Chart.getChart(chartId);
+      //   if (!chart) return;
 
-        const canvas = chart.canvas;
-        const imgData = canvas.toDataURL("image/png");
+      //   const canvas = chart.canvas;
+      //   const imgData = canvas.toDataURL("image/png");
 
-        const pdf = new jsPDF({
-          orientation: "landscape",
-          unit: "pt",
-          format: [canvas.width, canvas.height],
-        });
+      //   const pdf = new jsPDF({
+      //     orientation: "landscape",
+      //     unit: "pt",
+      //     format: [canvas.width, canvas.height],
+      //   });
 
-        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-        pdf.save(filename);
-      }
+      //   pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+      //   pdf.save(filename);
+      // }
 
       // Export cost calculator data as CSV
       function exportCostDataCSV() {
@@ -791,7 +814,7 @@
 
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "Mileage,Kilometers Driven,Petrol Price,Estimated Extra Cost\n";
-        csvContent += `${mileage},${kms},${price},${cost}\n`;
+        csvContent += `${mileage},${kms},${price},"${cost}"\n`;
 
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
@@ -803,20 +826,22 @@
       }
 
       // Export cost calculator data as PDF
-      function exportCostDataPDF() {
-        const mileage = mileageInput.value || "";
-        const kms = kmsInput.value || "";
-        const price = priceInput.value || "";
-        const cost = costResult.textContent || "";
+      // For PDF export, jsPDF library is needed. Add <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> to head
+      // function exportCostDataPDF() {
+      //   const mileage = mileageInput.value || "";
+      //   const kms = kmsInput.value || "";
+      //   const price = priceInput.value || "";
+      //   const cost = costResult.textContent || "";
 
-        const pdf = new jsPDF();
-        pdf.text("Fuel Cost Calculator Data", 10, 10);
-        pdf.text(`Mileage: ${mileage}`, 10, 30);
-        pdf.text(`Kilometers Driven: ${kms}`, 10, 50);
-        pdf.text(`Petrol Price: ${price}`, 10, 70);
-        pdf.text(`Estimated Extra Cost: ${cost}`, 10, 90);
-        pdf.save("fuel_cost_data.pdf");
-      }
+      //   const pdf = new jsPDF();
+      //   pdf.text("Fuel Cost Calculator Data", 10, 10);
+      //   pdf.text(`Mileage: ${mileage}`, 10, 30);
+      //   pdf.text(`Kilometers Driven: ${kms}`, 10, 50);
+      //   pdf.text(`Petrol Price: ${price}`, 10, 70);
+      //   pdf.text(`Estimated Extra Cost: ${cost}`, 10, 90);
+      //   pdf.save("fuel_cost_data.pdf");
+      // }
+
 
       window.onload = function () {
         showSection("e20-fuel");
